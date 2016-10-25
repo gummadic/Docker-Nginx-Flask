@@ -1,0 +1,44 @@
+auth:
+  restart: always
+  build: ./auth
+  expose:
+    - "8000"
+  links:
+    - mongo:mongo
+  volumes:
+    - /usr/src/app/static
+  env_file: .env
+  environment:
+    - "VIRTUAL_HOST=192.168.99.119"
+    - "APP_NAME=auth-layer"
+  command: /usr/local/bin/gunicorn -w 2 -b :8000 app:app
+
+data:
+  restart: always
+  build: ./data
+  expose:
+    - "8001"
+  links:
+    - mongo:mongo
+  volumes:
+    - /usr/src/app/static
+  environment:
+    - "VIRTUAL_HOST=192.168.99.119"
+    - "APP_NAME=data-layer"
+  command: /usr/local/bin/gunicorn -w 2 -b :8001 app:app
+
+
+nginx-proxy:
+  container_name: nginx-proxy
+  image: jwilder/nginx-proxy
+  ports:
+    - "80:80"
+  volumes:
+    - /var/run/docker.sock:/tmp/docker.sock
+
+  restart: always
+
+
+mongo:
+  image: mongo:3.0.2
+
